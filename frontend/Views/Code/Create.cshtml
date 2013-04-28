@@ -1,0 +1,64 @@
+﻿@model frontend.Models.CodeSnippet
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+@* @using (Html.BeginForm()) { *@
+<form id="snippet-form" method="post">
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>CodeSnippet</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(Model => Model.Label)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Label)
+            @Html.ValidationMessageFor(model => model.Label)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Code)
+        </div>
+        @Html.HiddenFor(model => model.Code, new { id="hidden-editor" })
+        <div class="editor-wrapper">
+            <div id="editor">#include &lt;iostream&gt;
+
+int main (int argc, char* argv[])
+{
+    std::cout &lt;&lt; "Hello world" &lt;&lt; std::endl;
+    return 0;
+}</div>
+            @Html.ValidationMessageFor(model => model.Code)
+        </div>
+
+        <p>
+            <input type="submit" value="Create"/>
+        </p>
+    </fieldset>
+</form>
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script src="/Content/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/eclipse");
+        editor.getSession().setMode("ace/mode/c_cpp");
+
+        $('#snippet-form').submit(function () {
+            $('#hidden-editor').val(editor.getSession().getValue());
+        });
+
+    </script>
+
+}

@@ -1,0 +1,178 @@
+﻿@model frontend.Models.CodeSnippet
+
+@{
+    ViewBag.Title = "Details";
+    
+    var Compiled = Model.Finished;
+    var Successful = Compiled ? Model.Result.Successful : false;
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>Code Snippet</legend>
+
+    <div class="display-field">
+         @Html.DisplayFor(model => model.Label)
+    </div>
+
+    <h3 class="display-label">
+         @Html.DisplayNameFor(model => model.Code)
+    </h3>
+
+    <div id="result-wrapper" class="">
+        <div class="editor-wrapper">
+            <div id="editor">@Html.DisplayFor(model => model.Code)</div>
+        </div>
+        <div class="result-state">
+            <span class="label">Loading...</span>
+            <img src="/Images/ajax-loader.gif" style="width: 16px; height: 16px; border: none;" />
+        </div>
+    </div>
+
+    <div id="compiler-output" style="display: none">
+        <dl>
+            <dt>Compiler</dt>
+            <dd class="compiler-name">Unknown</dd>
+
+            <dt>Exit Code</dt>
+            <dd class="exit-code"></dd>
+
+            <dt>Compile Time</dt>
+            <dd class="compile-time"></dd>
+        </dl>
+
+        <pre class="console-output-stdout">
+
+        </pre>
+
+        <pre class="console-output-stderr">
+
+        </pre>
+    </div>
+
+</fieldset>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.Id }) |
+    @Html.ActionLink("Back to List", "Index", "Home")
+</p>
+
+@section scripts {
+
+<script src="/Content/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/eclipse");
+    editor.getSession().setMode("ace/mode/c_cpp");
+    editor.setReadOnly(true);
+
+    var Range = ace.require('ace/range').Range;
+    /*
+     * UpdateMarkers
+     */
+    function UpdateMarkers(errors) {
+        if (!errors)
+            return;
+        function countLeadingSpaces(string) {
+            for (var i = 0; i < string.length; ++i) {
+                if (string[i] != ' ')
+                    return i;
+            }
+
+            return string.length;
+        }
+
+        var currentMarkers = editor.getSession().getMarkers();
+        $.each(currentMarkers, function (index, marker) {
+            editor.getSession().removeMarker(marker);
+        });
+
+        $.each(errors, function (index, error) {
+            var lineNo = error.Line - 1;
+            var line = editor.getSession().getLine(lineNo);
+            var indent = countLeadingSpaces(line);
+
+            var className = "code-unknown";
+            switch (error.Type)
+            {
+                case 0: className = "code-error"; break;
+                case 1: className = "code-warning"; break;
+                case 2: className = "code-notice"; break;
+                case 3: className = "code-unknown"; break;
+            }
+
+            editor.getSession().addMarker(
+                new Range(lineNo, indent, lineNo, line.length),
+                className);
+        });
+    }
+
+    /*
+     * UpdateResult
+     */
+    function UpdateResult(result) {
+        if (result.Successful) {
+            $('#result-wrapper').attr("class", "result-successful");
+            $('#result-wrapper .result-state .label').text("Successful");
+        } else {
+            $('#result-wrapper').attr("class", "result-failed");
+            $('#result-wrapper .result-state .label').text("Failed");
+        }
+
+        $('#result-wrapper .result-state img').remove();
+        $('#compiler-output').show();
+        $('#compiler-output .compiler-name').text("Unknown");
+        $('#compiler-output .exit-code').text(result.ExitCode);
+        $('#compiler-output .compile-time').text(result.CompileTime);
+        $('#compiler-output .console-output-stdout').text(result.StdOut);
+        $('#compiler-output .console-output-stderr').text(result.StdErr);
+
+        UpdateMarkers(result.Messages);
+    }
+
+    function StartLoading(Url, Try) {
+        $('#result-wrapper').attr("class", "result-not-executed");
+
+        if (!Try)
+            Try = 1;
+        setTimeout(function () {
+            $.ajax(Url, {
+                async: true,
+                dataType: "json"
+            }).done(function (snippet) {
+                if (snippet.Finished) {
+                    snippet.Result.Messages = $.parseJSON(snippet.Result.MessagesJson);
+
+                    UpdateResult(snippet.Result);
+                } else {
+                    if (Try < 15)
+                        StartLoading(Url, Try + 1);
+                }
+            });
+        }, 2000);
+    }
+
+    @if (Compiled) {
+        var MessagesString = HttpUtility.JavaScriptStringEncode(Model.Result.MessagesJson);
+        var StdOut = HttpUtility.JavaScriptStringEncode(Model.Result.StdOut);
+        var StdErr = HttpUtility.JavaScriptStringEncode(Model.Result.StdErr);
+    <text>
+    var messagesRaw = "@Html.Raw(MessagesString)";
+    var Result = {
+        "Successful": "@Model.Result.Successful" == "True" ? true : false,
+        "ExitCode": "@Model.Result.ExitCode",
+        "StdOut": "@Html.Raw(StdOut)",
+        "StdErr": "@Html.Raw(StdErr)",
+        "CompileTime": "@Model.Result.CompileTime",
+        "Messages": $.parseJSON(messagesRaw)
+    };
+    UpdateResult(Result);
+    </text>
+    } else {
+    <text>
+    StartLoading("/api/Snippets/@Model.Id");
+    </text>
+    }
+</script>
+
+}

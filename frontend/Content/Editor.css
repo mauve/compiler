@@ -1,0 +1,83 @@
+﻿.editor-wrapper {
+    position: relative;
+    height: 350px;
+    width: 100%;
+    margin: 2px;
+}
+
+#result-wrapper > .result-state {
+    height: 30px;
+    width: 15%;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+#result-wrapper > .result-state > .label {
+    font-size: 1.2em;
+    line-height: 30px;
+    font-weight: lighter;
+    color: black;
+    margin-left: 7px;
+}
+#result-wrapper > .result-state > img {
+    float: right;
+    margin-right: 7px;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+#result-wrapper.result-successful > .editor-wrapper {
+    margin: 0px;
+    border: 2px solid #86DD75;
+}
+#result-wrapper.result-successful > .result-state {
+    background-color: #86DD75;
+}
+
+#result-wrapper.result-failed > .editor-wrapper {
+    margin: 0px;
+    border: 2px solid #E07676;
+}
+#result-wrapper.result-failed > .result-state {
+    background-color: #E07676;
+}
+
+#result-wrapper.result-not-executed > .editor-wrapper {
+    margin: 0px;
+    border: 2px solid #DBDB60;
+}
+#result-wrapper.result-not-executed > .result-state {
+    background-color: #DBDB60;
+}
+
+#editor {
+    position: relative;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: 350px;
+}
+
+.ace_marker-layer .code-error {
+    position: absolute;
+    z-index: 4;
+    background: url(../Images/squiggly-underline.png) repeat-x bottom left;
+}
+
+.ace_marker-layer .code-warning {
+    position: absolute;
+    z-index: 4;
+    background: url(../Images/squiggly-underline-warning.png) repeat-x bottom left;
+}
+
+.ace_marker-layer .code-notice {
+    position: absolute;
+    z-index: 4;
+    background: url(../Images/squiggly-underline-notice.png) repeat-x bottom left;
+}
+
+.ace_marker-layer .code-unknown {
+    position: absolute;
+    z-index: 4;
+    background: url(../Images/squiggly-underline-unknown.png) repeat-x bottom left;
+}
